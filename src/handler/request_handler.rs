@@ -33,13 +33,13 @@ pub struct HttpRequest{
 }
 
 impl HttpRequest {
-    fn generate_request(&self)  -> String{
+    pub fn generate_query(&self)  -> String{
         let url = &self.service_data.url;
         let auth_key = &self.service_data.authentication_key;
         let text = &self.text;
         let target_lang = self.target_lang.to_string();
 
-        let full = format!("{}?{}?{}?{}", url, auth_key, text, target_lang);
+        let full = format!("{}?auth_key={}?text={}?target_lang={}", url, auth_key, text, target_lang);
         full.to_string()
     }
 }

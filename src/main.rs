@@ -1,6 +1,4 @@
 use std::env;
-use std::{fmt::Debug};
-use std::fmt;
 
 mod handler;
 use handler::service_handler::{ServiceData, ServiceType};
@@ -12,7 +10,7 @@ use handler::request_handler::{HttpRequest,TargetLanguage};
 /// - 非同期にリファクタ
 /// - サービスごとにtrait, 実装ファイルを分割
 /// - オブジェクト指向にリファクタ
-/// - セキュアバイ・デザイン: ドメインプリミティブ型に変更
+/// - 変数型をドメインプリミティブ型に変更
 /// - 依存の方向性を整理する
 
 fn main() {
@@ -30,6 +28,9 @@ fn main() {
         text: "Hello Wold".to_string(),
         target_lang: TargetLanguage::JP
     };
+
+    let request : String = HttpRequest::generate_query(&tmp_request);
+    println!("{}", &request)
 
 
     //let mut easy = Easy2::new(Collector(Vec::new()));
