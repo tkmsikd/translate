@@ -1,10 +1,10 @@
-use curl::easy::{Easy2, Handler, WriteError};
 use std::env;
 use std::{fmt::Debug};
 use std::fmt;
 
-pub mod service_handler;
-use service_handler::{ServiceData, ServiceType};
+mod handler;
+use handler::service_handler::{ServiceData, ServiceType};
+use handler::request_handler::{HttpRequest,TargetLanguage};
 
 
 // TODO:
@@ -13,52 +13,7 @@ use service_handler::{ServiceData, ServiceType};
 /// - サービスごとにtrait, 実装ファイルを分割
 /// - オブジェクト指向にリファクタ
 /// - セキュアバイ・デザイン: ドメインプリミティブ型に変更
-///
-
-#[derive(Debug, Clone, Copy)]
-enum TargetLanguage {
-    JP,
-    EN,
-    Undefined
-}
-
-impl fmt::Display for TargetLanguage {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self {
-            TargetLanguage::JP => write!(f, "JP"),
-            TargetLanguage::EN => write!(f, "EN"),
-            TargetLanguage::Undefined => write!(f, "undefined")
-        }
-    }
-}
-
-#[derive(Debug)]
-struct HttpRequest{
-    pub serviceData: ServiceData,
-    pub text: String,
-    pub target_lang: TargetLanguage,
-}
-
-impl HttpRequest {
-    fn generate_request(&self)  -> String{
-        let url = &self.serviceData.url;
-        let auth_key = &self.serviceData.authentication_key;
-        let text = &self.text;
-        let target_lang = self.target_lang.to_string();
-
-        let full = format!("{}?{}?{}?{}", url, auth_key, text, target_lang);
-        full.to_string()
-    }
-}
-
-struct Collector(Vec<u8>);
-
-impl Handler for Collector {
-    fn write(&mut self, data: &[u8]) -> Result<usize, WriteError> {
-        self.0.extend_from_slice(data);
-        Ok(data.len())
-    }
-}
+/// - 依存の方向性を整理する
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -71,12 +26,11 @@ fn main() {
 
 
     let tmp_request = HttpRequest{
-        serviceData: service_data,
+        service_data: service_data,
         text: "Hello Wold".to_string(),
         target_lang: TargetLanguage::JP
     };
 
-    println!("{:?}", tmp_request);
 
     //let mut easy = Easy2::new(Collector(Vec::new()));
     //easy.post(true).unwrap();
