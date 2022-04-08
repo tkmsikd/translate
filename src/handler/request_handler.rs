@@ -1,8 +1,9 @@
 use curl::easy::{Easy2, Handler, WriteError};
+use serde::{Serialize, Deserialize};
 use crate::handler::service_handler::ServiceData;
 use std::fmt;
-
-struct Collector(Vec<u8>);
+use bincode;
+pub struct Collector(pub Vec<u8>);
 
 impl Handler for Collector {
     fn write(&mut self, data: &[u8]) -> Result<usize, WriteError> {
@@ -11,6 +12,7 @@ impl Handler for Collector {
     }
 }
 #[derive(Debug, Clone, Copy)]
+#[derive(Serialize, Deserialize)]
 pub enum TargetLanguage {
     JP,
     EN,
@@ -26,6 +28,8 @@ impl fmt::Display for TargetLanguage {
         }
     }
 }
+
+#[derive(Serialize, Deserialize)]
 pub struct HttpRequest{
     pub service_data: ServiceData,
     pub text: String,
@@ -41,5 +45,9 @@ impl HttpRequest {
 
         let full = format!("{}?auth_key={}?text={}?target_lang={}", url, auth_key, text, target_lang);
         full.to_string()
+    }
+
+    pub fn encode_query<T: Serialize>(&self, target: &T) -> Vec<u8> {
+        bincode::serialize(&target).unwrap()
     }
 }

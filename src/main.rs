@@ -1,8 +1,10 @@
 use std::env;
+use serde::{Serialize, Deserialize};
+use curl::easy::{Easy2};
 
 mod handler;
 use handler::service_handler::{ServiceData, ServiceType};
-use handler::request_handler::{HttpRequest,TargetLanguage};
+use handler::request_handler::{HttpRequest,TargetLanguage, Collector};
 
 
 // TODO:
@@ -29,14 +31,18 @@ fn main() {
         target_lang: TargetLanguage::JP
     };
 
-    let request : String = HttpRequest::generate_query(&tmp_request);
-    println!("{}", &request)
+    let query: String = HttpRequest::generate_query(&tmp_request);
+    println!("{}", &query);
 
 
-    //let mut easy = Easy2::new(Collector(Vec::new()));
-    //easy.post(true).unwrap();
-    //easy.url().unwrap();
+    let encoded: Vec<u8> = Serialize::serialize(&self, serializer);
+    let mut easy = Easy2::new(Collector(Vec::new()));
+    easy.post(true).unwrap();
+    //easy.http_version(curl::easy::HttpVersion::V10);
+    easy.post_fields_copy()
+    easy.url(&query).unwrap();
 
+    println!("{}", &easy.response_code().unwrap());
     //assert_eq!(easy.response_code().unwrap(), 200);
     //let contents = easy.get_ref();
     //println!("{}", String::from_utf8_lossy(&contents.0));;

@@ -1,5 +1,5 @@
 use serde::de::value::Error;
-use serde::Deserialize;
+use serde::{Serialize, Deserialize};
 use serde_json;
 use std::io::BufReader;
 use std::fs::File;
@@ -21,7 +21,7 @@ impl ServiceType {
         }
     }
 }
-#[derive(Debug, PartialEq, Deserialize)]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct ServiceData {
     pub url: String,
     pub authentication_key: String,
