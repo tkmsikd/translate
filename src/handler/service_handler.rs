@@ -1,12 +1,10 @@
 use serde::de::value::Error;
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 use serde_json;
-use std::io::BufReader;
 use std::fs::File;
-
+use std::io::BufReader;
 
 #[allow(unused)]
-
 #[derive(Debug, PartialEq)]
 pub enum ServiceType {
     Deepl,
@@ -31,9 +29,9 @@ impl ServiceData {
     pub fn new(&self, service_type: ServiceType) -> Self {
         let (url, auth_key) = self.load_service_data(service_type).unwrap();
 
-        Self { 
+        Self {
             url: url,
-            authentication_key: auth_key
+            authentication_key: auth_key,
         }
     }
 
@@ -42,14 +40,14 @@ impl ServiceData {
             ServiceType::Deepl => format!("./auth_files/deepl_auth_info.json"),
             ServiceType::GoogleTranslate => format!("./auth_files/gtranslate_auth_info.json"),
         };
-    
+
         let file = File::open(credential_path).expect("file not found");
         let reader = BufReader::new(file);
-        let deserialize:ServiceData = serde_json::from_reader(reader).unwrap();
+        let deserialize: ServiceData = serde_json::from_reader(reader).unwrap();
 
         let url = deserialize.url;
         let auth_key = deserialize.authentication_key;
-    
+
         Ok((url, auth_key))
-    } 
+    }
 }

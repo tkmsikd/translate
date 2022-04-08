@@ -1,8 +1,12 @@
-use curl::easy::{Easy2, Handler, WriteError};
-use serde::{Serialize, Deserialize};
 use crate::handler::service_handler::ServiceData;
-use std::fmt;
 use bincode;
+use curl::easy::{Easy2, Handler, WriteError};
+use serde::ser::Error;
+use serde::{Deserialize, Serialize};
+use std::fmt::{self, Debug};
+use std::process::Command;
+#[allow(unused)]
+
 pub struct Collector(pub Vec<u8>);
 
 impl Handler for Collector {
@@ -11,43 +15,66 @@ impl Handler for Collector {
         Ok(data.len())
     }
 }
-#[derive(Debug, Clone, Copy)]
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub enum TargetLanguage {
-    JP,
+    JA,
     EN,
-    Undefined
+    Undefined,
 }
 
 impl fmt::Display for TargetLanguage {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            TargetLanguage::JP => write!(f, "JP"),
+            TargetLanguage::JA => write!(f, "JA"),
             TargetLanguage::EN => write!(f, "EN"),
-            TargetLanguage::Undefined => write!(f, "undefined")
+            TargetLanguage::Undefined => write!(f, "undefined"),
         }
     }
 }
 
-#[derive(Serialize, Deserialize)]
-pub struct HttpRequest{
-    pub service_data: ServiceData,
+pub struct Url {
+    pub url: String,
+}
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Query {
+    //pub service_data: ServiceData,
+    pub auth_key: String,
     pub text: String,
     pub target_lang: TargetLanguage,
 }
 
-impl HttpRequest {
-    pub fn generate_query(&self)  -> String{
-        let url = &self.service_data.url;
-        let auth_key = &self.service_data.authentication_key;
-        let text = &self.text;
-        let target_lang = self.target_lang.to_string();
-
-        let full = format!("{}?auth_key={}?text={}?target_lang={}", url, auth_key, text, target_lang);
-        full.to_string()
-    }
-
+impl Query {
     pub fn encode_query<T: Serialize>(&self, target: &T) -> Vec<u8> {
         bincode::serialize(&target).unwrap()
     }
+
+    pub fn run_curl(&self, url: Url) {
+        let url = url.url;
+        let target_lang = "JP"; //FIXME: TargetLanguageの型から変換して使えるように修正する
+        let output = if cfg!(target_os = "macos") || cfg!(target_os = "linux") {
+            Command::new("curl")
+                .args([
+                    &url,
+                    "--verbose",
+                    "-d",
+                    &self.auth_key,
+                    "-d",
+                    &self.text,
+                    "-d",
+                    target_lang,
+                ])
+                .output()
+                .expect("Error: Something went wrong while executing curl")
+        } else {
+            panic!("Not available on Windows OS")
+        };
+
+        let translate = output.stdout;
+        println!("{:?}", translate);
+    }
+
+    pub fn post_request(&self) {
+        //TODO: implement http post not using curl command
+    }
+
 }

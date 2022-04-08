@@ -1,11 +1,10 @@
+use curl::easy::Easy2;
+use serde::{Deserialize, Serialize};
 use std::env;
-use serde::{Serialize, Deserialize};
-use curl::easy::{Easy2};
 
 mod handler;
+use handler::request_handler::{Collector, Query, TargetLanguage, Url};
 use handler::service_handler::{ServiceData, ServiceType};
-use handler::request_handler::{HttpRequest,TargetLanguage, Collector};
-
 
 // TODO:
 /// - まずはシンプルに動かすMock
@@ -17,37 +16,36 @@ use handler::request_handler::{HttpRequest,TargetLanguage, Collector};
 
 fn main() {
     let args: Vec<String> = env::args().collect();
+    
 
     let _service_type = ServiceType::load_service_type(&args[0]);
 
-    let sd = ServiceData{url: "".to_string(), authentication_key: "".to_string()};
-    let service_data:ServiceData = ServiceData::new(&sd , _service_type);
+    let sd = ServiceData {
+        url: "".to_string(),
+        authentication_key: "".to_string(),
+    };
+    let service_data: ServiceData = ServiceData::new(&sd, _service_type);
 
-
-
-    let tmp_request = HttpRequest{
-        service_data: service_data,
-        text: "Hello Wold".to_string(),
-        target_lang: TargetLanguage::JP
+    let url: Url = Url {
+        url: service_data.url,
+        //url: "https://www.rust-lang.org/".to_string(),
     };
 
-    let query: String = HttpRequest::generate_query(&tmp_request);
-    println!("{}", &query);
+    let tmp_params = Query {
+        auth_key: service_data.authentication_key,
+        text: "Hello".to_string(),
+        target_lang: TargetLanguage::JA,
+    };
 
+    println!("{:?}", tmp_params);
+    tmp_params.run_curl(url);
 
-    let encoded: Vec<u8> = Serialize::serialize(&self, serializer);
-    let mut easy = Easy2::new(Collector(Vec::new()));
-    easy.post(true).unwrap();
-    //easy.http_version(curl::easy::HttpVersion::V10);
-    easy.post_fields_copy()
-    easy.url(&query).unwrap();
-
-    println!("{}", &easy.response_code().unwrap());
+    // HTTPが動かない
     //assert_eq!(easy.response_code().unwrap(), 200);
     //let contents = easy.get_ref();
     //println!("{}", String::from_utf8_lossy(&contents.0));;
 }
-// Test 
+// Test
 #[cfg(test)]
 mod tests {
     use std::vec;
@@ -57,19 +55,30 @@ mod tests {
     #[test]
     fn test_load_service_type() {
         let args_vec = vec!["deepl".to_string()];
-        assert_eq!(ServiceType::Deepl, ServiceType::load_service_type(&args_vec[0]));
+        assert_eq!(
+            ServiceType::Deepl,
+            ServiceType::load_service_type(&args_vec[0])
+        );
     }
 
     #[test]
     fn test_load_service_data() {
         let _service_type = ServiceType::Deepl;
-        let sd = ServiceData{url: "".to_string(), authentication_key: "".to_string()};
-        let service_data:ServiceData = ServiceData::new(&sd , _service_type);
-        let correct_data = ServiceData {
-            url:"https://api-free.deepl.com/v2/translate".to_string(),
+        let sd = ServiceData {
+            url: "".to_string(),
+            authentication_key: "".to_string(),
+        };
+        let service_data: ServiceData = ServiceData::new(&sd, _service_type);
+        let expected = ServiceData {
+            url: "https://api-free.deepl.com/v2/translate".to_string(),
             authentication_key: "819ee1f7-f31b-1bc8-03a6-5e5a33b7bbd5:fx".to_string(),
         };
-        assert_eq!(correct_data, service_data);
-    
+        assert_eq!(expected, service_data);
+    }
+
+    #[test]
+    fn test_generate_query() {
+        let expected = String::from("url?auth_key=auth_key?text?hello?target_lang=JA");
+        //        assert_eq!(expected, http_request.generate_query());
     }
 }
